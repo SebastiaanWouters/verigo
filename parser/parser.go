@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/sebastiaanwouters/verigo/ast"
+	"github.com/SebastiaanWouters/verigo/ast"
 
-	"github.com/sebastiaanwouters/verigo/lexer"
+	"github.com/SebastiaanWouters/verigo/lexer"
 
-	"github.com/sebastiaanwouters/verigo/token"
+	"github.com/SebastiaanWouters/verigo/token"
 )
 
 const (

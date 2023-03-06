@@ -1,3 +1,3 @@
-module github.com/sebastiaanwouters/verigo
+module github.com/SebastiaanWouters/verigo
 
 go 1.20

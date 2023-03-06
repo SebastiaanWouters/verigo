@@ -3,8 +3,8 @@ package parser
 import (
 	"testing"
 
-	"github.com/sebastiaanwouters/verigo/ast"
-	"github.com/sebastiaanwouters/verigo/lexer"
+	"github.com/SebastiaanWouters/verigo/ast"
+	"github.com/SebastiaanWouters/verigo/lexer"
 )
 
 func TestLetStatements(t *testing.T) {

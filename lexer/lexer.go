@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"github.com/sebastiaanwouters/verigo/token"
+	"github.com/SebastiaanWouters/verigo/token"
 )
 
 type Lexer struct {

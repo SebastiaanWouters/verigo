@@ -3,7 +3,7 @@ package evaluator
 import (
 	"fmt"
 
-	"github.com/sebastiaanwouters/verigo/object"
+	"github.com/SebastiaanWouters/verigo/object"
 )
 
 var builtins = map[string]*object.Builtin{

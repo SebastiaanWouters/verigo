@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/sebastiaanwouters/verigo/evaluator"
-	"github.com/sebastiaanwouters/verigo/lexer"
-	"github.com/sebastiaanwouters/verigo/object"
-	"github.com/sebastiaanwouters/verigo/parser"
+	"github.com/SebastiaanWouters/verigo/evaluator"
+	"github.com/SebastiaanWouters/verigo/lexer"
+	"github.com/SebastiaanWouters/verigo/object"
+	"github.com/SebastiaanWouters/verigo/parser"
 )
 
 const PROMPT = ">> "

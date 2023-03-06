@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/sebastiaanwouters/verigo/token"
+	"github.com/SebastiaanWouters/verigo/token"
 )
 
 type Node interface {

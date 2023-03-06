@@ -3,8 +3,8 @@ package evaluator
 import (
 	"fmt"
 
-	"github.com/sebastiaanwouters/verigo/ast"
-	"github.com/sebastiaanwouters/verigo/object"
+	"github.com/SebastiaanWouters/verigo/ast"
+	"github.com/SebastiaanWouters/verigo/object"
 )
 
 var (
