@@ -16,10 +16,6 @@ var (
 var operationCount = 0
 
 func Eval(node ast.Node, env *object.Environment, resultMap *object.ResultMap, opChan chan int) object.Object {
-	operationCount += 1
-	if operationCount%1 == 0 {
-		opChan <- 1
-	}
 	switch node := node.(type) {
 	// Statements
 	case *ast.Program:
@@ -46,7 +42,7 @@ func Eval(node ast.Node, env *object.Environment, resultMap *object.ResultMap, o
 		if isError(right) {
 			return right
 		}
-		return evalInfixExpression(node.Operator, left, right)
+		return evalInfixExpression(node.Operator, left, right, opChan)
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env, resultMap, opChan)
 	case *ast.IfExpression:
@@ -174,12 +170,12 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func evalInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+func evalInfixExpression(operator string, left object.Object, right object.Object, c chan int) object.Object {
 	switch {
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
-		return evalIntegerInfixExpression(operator, left, right)
+		return evalIntegerInfixExpression(operator, left, right, c)
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
@@ -206,25 +202,34 @@ func evalStringInfixExpression(
 func evalIntegerInfixExpression(
 	operator string,
 	left, right object.Object,
+	c chan int,
 ) object.Object {
 	leftVal := left.(*object.Integer).Value
 	rightVal := right.(*object.Integer).Value
 	switch operator {
 	case "+":
+		increaseOpCount(c)
 		return &object.Integer{Value: leftVal + rightVal}
 	case "-":
+		increaseOpCount(c)
 		return &object.Integer{Value: leftVal - rightVal}
 	case "*":
+		increaseOpCount(c)
 		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
+		increaseOpCount(c)
 		return &object.Integer{Value: leftVal / rightVal}
 	case "<":
+		increaseOpCount(c)
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
+		increaseOpCount(c)
 		return nativeBoolToBooleanObject(leftVal > rightVal)
 	case "==":
+		increaseOpCount(c)
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
+		increaseOpCount(c)
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return newError("unknown operator: %s %s %s",
@@ -315,4 +320,11 @@ func isError(obj object.Object) bool {
 		return obj.Type() == object.ERROR_OBJ
 	}
 	return false
+}
+
+func increaseOpCount(c chan int) {
+	operationCount += 1
+	if operationCount%10 == 0 {
+		c <- 1
+	}
 }
