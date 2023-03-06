@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sebastiaanwouters/verigo/ast"
+	"github.com/SebastiaanWouters/verigo/ast"
 )
 
 type ObjectType string
