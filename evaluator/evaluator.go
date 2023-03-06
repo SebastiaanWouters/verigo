@@ -323,8 +323,5 @@ func isError(obj object.Object) bool {
 }
 
 func increaseOpCount(c chan int) {
-	operationCount += 1
-	if operationCount%10 == 0 {
-		c <- 1
-	}
+	c <- 1
 }
