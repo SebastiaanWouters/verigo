@@ -74,6 +74,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FOR, p.parseForExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -264,6 +265,65 @@ func (p *Parser) parseIfExpression() ast.Expression {
 		expression.Alternative = p.parseBlockStatement()
 	}
 
+	return expression
+}
+
+func (p *Parser) parseForExpression() ast.Expression {
+	expression := &ast.ForExpression{Token: p.curToken}
+	if !p.expectPeek(token.LPAREN) {
+		msg := fmt.Sprintf("1. could not parse %q as LPAREN", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	if !p.expectPeek(token.LET) {
+		msg := fmt.Sprintf("2. could not parse %q as LET", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	expression.Variable = *p.parseLetStatement()
+	if !p.expectPeek(token.IDENT) {
+		msg := fmt.Sprintf("3. could not parse %q as IDENT", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	expression.Condition = p.parseExpression(LOWEST)
+	if !p.expectPeek(token.SEMICOLON) {
+		msg := fmt.Sprintf("4. could not parse %q as SEMICOLON", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	if !p.expectPeek(token.LET) {
+		msg := fmt.Sprintf("4. could not parse %q as IDENT", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	expression.Update = *p.parseLetStatement()
+	if !p.expectPeek(token.RPAREN) {
+		msg := fmt.Sprintf("5. could not parse %q as RPAREN", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	if !p.expectPeek(token.LBRACE) {
+		msg := fmt.Sprintf("6. could not parse %q as LBRACE", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	expression.Loop = p.parseBlockStatement()
+	/*p.nextToken()
+	fmt.Println(p.curToken)
+	expression.Variable = *p.parseLetStatement()
+	fmt.Println(expression.Variable)
+	expression.Condition = p.parseExpression(LOWEST)
+	expression.Update = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	expression.Loop = p.parseBlockStatement()
+	return expression*/
 	return expression
 }
 

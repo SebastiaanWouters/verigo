@@ -47,6 +47,8 @@ func Eval(node ast.Node, env *object.Environment, resultMap *object.ResultMap, o
 		return evalBlockStatement(node, env, resultMap, opChan)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env, resultMap, opChan)
+	case *ast.ForExpression:
+		return evalForExpression(node, env, resultMap, opChan)
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env, resultMap, opChan)
 		if isError(val) {
@@ -143,6 +145,23 @@ func evalIdentifier(
 	return newError("identifier not found: " + node.Value)
 }
 
+func evalForExpression(ie *ast.ForExpression, env *object.Environment, rMap *object.ResultMap, opChan chan int) object.Object {
+	Eval(&ie.Variable, env, rMap, opChan)
+	condition := Eval(ie.Condition, env, rMap, opChan)
+	if isError(condition) {
+		return condition
+	}
+	for isTruthy(condition) {
+		Eval(ie.Loop, env, rMap, opChan)
+		Eval(&ie.Update, env, rMap, opChan)
+		condition = Eval(ie.Condition, env, rMap, opChan)
+		if isError(condition) {
+			return condition
+		}
+	}
+	return NULL
+}
+
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment, rMap *object.ResultMap, opChan chan int) object.Object {
 	condition := Eval(ie.Condition, env, rMap, opChan)
 	if isError(condition) {
@@ -157,6 +176,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment, rMap *objec
 		return NULL
 	}
 }
+
 func isTruthy(obj object.Object) bool {
 	switch obj {
 	case NULL:

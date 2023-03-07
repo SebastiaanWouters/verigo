@@ -73,6 +73,28 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+type ForExpression struct {
+	Token     token.Token
+	Variable  LetStatement
+	Condition Expression
+	Update    LetStatement
+	Loop      *BlockStatement
+}
+
+func (ie *ForExpression) ExpressionNode()      {}
+func (ie *ForExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *ForExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for ")
+	out.WriteString(ie.Variable.String())
+	out.WriteString(" while ")
+	out.WriteString(ie.Condition.String())
+	out.WriteString(" do ")
+	out.WriteString(ie.Loop.String())
+
+	return out.String()
+}
+
 type BlockStatement struct {
 	Token      token.Token // the { token
 	Statements []Statement

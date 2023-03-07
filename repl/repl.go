@@ -13,11 +13,18 @@ import (
 
 const PROMPT = ">> "
 
+func monitorChan(c chan int) {
+	for {
+		<-c
+	}
+}
+
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := object.NewEnvironment()
 	rMap := object.NewResultMap()
 	c := make(chan int)
+	go monitorChan(c)
 
 	for {
 		fmt.Printf(PROMPT)
