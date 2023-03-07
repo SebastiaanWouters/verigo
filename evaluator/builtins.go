@@ -35,14 +35,11 @@ var builtins = map[string]*object.Builtin{
 var utils = map[string]*object.Save{
 	"save": &object.Save{
 		Fn: func(name object.Object, id object.Object, env *object.Environment, rMap *object.ResultMap) object.Object {
-			if name.Type() == object.STRING_OBJ && id.Type() == object.STRING_OBJ {
-				value, ok := env.Get(id.Inspect())
-				if ok {
-					rMap.Set(name.Inspect(), value)
-				}
+			if name.Type() == object.STRING_OBJ {
+				rMap.Set(name.Inspect(), id)
 				return NULL
 			} else {
-				return newError("argument to `save` not supported, got %s",
+				return newError("arguments to `save` not supported, got %s",
 					name.Type())
 			}
 		},
