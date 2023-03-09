@@ -76,7 +76,6 @@ func checkFile(filename string) error {
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := object.NewEnvironment()
-	rMap := object.NewResultMap()
 	opChan := make(chan int)
 	rChan := make(chan object.Result)
 	go opChanMonitor(opChan)
@@ -98,12 +97,6 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		evaluator.Eval(program, env, rChan, opChan)
-
-		values := rMap.GetAll()
-		for key, value := range values {
-			fmt.Printf(key)
-			fmt.Println(value.Inspect())
-		}
 	}
 }
 
