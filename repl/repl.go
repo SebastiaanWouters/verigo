@@ -2,29 +2,85 @@ package repl
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
 
+	"github.com/SebastiaanWouters/verigo/parser"
+
+	"github.com/SebastiaanWouters/verigo/ast"
 	"github.com/SebastiaanWouters/verigo/evaluator"
 	"github.com/SebastiaanWouters/verigo/lexer"
 	"github.com/SebastiaanWouters/verigo/object"
-	"github.com/SebastiaanWouters/verigo/parser"
 )
 
 const PROMPT = ">> "
 
-func monitorChan(c chan int) {
+func opChanMonitor(c chan int) {
 	for {
+		//Gets called when an operation executes, contains the opcode (implement counting logic for the REPL here)
 		<-c
 	}
+}
+func rChanMonitor(c chan object.Result) {
+	for {
+		writeToDisk(<-c)
+	}
+}
+
+func writeToDisk(res object.Result) {
+	filename := "results.json"
+
+	err := checkFile(filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	data := []object.Result{}
+
+	json.Unmarshal(file, &data)
+
+	data = append(data, res)
+
+	// Preparing the data to be marshalled and written.
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = ioutil.WriteFile(filename, dataBytes, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+func checkFile(filename string) error {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		_, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := object.NewEnvironment()
 	rMap := object.NewResultMap()
-	c := make(chan int)
-	go monitorChan(c)
+	opChan := make(chan int)
+	rChan := make(chan object.Result)
+	go opChanMonitor(opChan)
+	go rChanMonitor(rChan)
 
 	for {
 		fmt.Printf(PROMPT)
@@ -40,18 +96,30 @@ func Start(in io.Reader, out io.Writer) {
 			printParserErrors(out, p.Errors())
 			continue
 		}
-		evaluator.Eval(program, env, rMap, c)
+
+		evaluator.Eval(program, env, rChan, opChan)
+
+		values := rMap.GetAll()
+		for key, value := range values {
+			fmt.Printf(key)
+			fmt.Println(value.Inspect())
+		}
 	}
 }
 
-func Eval(input string, rMap *object.ResultMap, opChan chan int) {
+func Eval(input string, rChan chan object.Result, opChan chan int) {
 	env := object.NewEnvironment()
 
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
 
-	evaluator.Eval(program, env, rMap, opChan)
+	evaluator.Eval(program, env, rChan, opChan)
+
+}
+
+func EvalParsed(program *ast.Program, env *object.Environment, rChan chan object.Result, opChan chan int) {
+	evaluator.Eval(program, env, rChan, opChan)
 }
 
 func printParserErrors(out io.Writer, errors []string) {

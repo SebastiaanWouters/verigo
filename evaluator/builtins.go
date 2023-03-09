@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	crand "crypto/rand"
 	"fmt"
 	"math"
 	"math/big"
@@ -8,8 +9,33 @@ import (
 	"github.com/SebastiaanWouters/verigo/object"
 )
 
+func fib(n int64) int64 {
+	var first int64 = 0
+	var second int64 = 1
+	if n == 0 {
+		return first
+	} else if n <= 2 {
+		return second
+	}
+	for i := 2; int64(i) <= n; i++ {
+		second = second + first
+		first = second - first
+	}
+	return second
+}
+
+func isPrime(value int64) bool {
+	for i := 2; i <= int(math.Floor(math.Sqrt(float64(value)))); i++ {
+		if (value % int64(i)) == 0 {
+			return false
+		}
+	}
+	return value > 1
+}
+
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{
+		Name: "len",
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
 				return newError("wrong number of arguments. got=%d, want=1",
@@ -25,6 +51,7 @@ var builtins = map[string]*object.Builtin{
 		},
 	},
 	"pow": &object.Builtin{
+		Name: "pow",
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 2 {
 				return newError("wrong number of arguments. got=%d, want=1",
@@ -47,6 +74,7 @@ var builtins = map[string]*object.Builtin{
 		},
 	},
 	"sqrt": &object.Builtin{
+		Name: "sqrt",
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
 				return newError("wrong number of arguments. got=%d, want=1",
@@ -62,7 +90,8 @@ var builtins = map[string]*object.Builtin{
 
 		},
 	},
-	"isPrime": &object.Builtin{
+	"sin": &object.Builtin{
+		Name: "sin",
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
 				return newError("wrong number of arguments. got=%d, want=1",
@@ -70,7 +99,79 @@ var builtins = map[string]*object.Builtin{
 			}
 			switch arg := args[0].(type) {
 			case *object.Integer:
-				return &object.Boolean{Value: big.NewInt(arg.Value).ProbablyPrime(0)}
+				return &object.Integer{Value: int64(math.Sin(float64(arg.Value)))}
+			default:
+				return newError("argument to `pow` not supported, got %s",
+					arg.Type())
+			}
+
+		},
+	},
+	"tan": &object.Builtin{
+		Name: "tan",
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1",
+					len(args))
+			}
+			switch arg := args[0].(type) {
+			case *object.Integer:
+				return &object.Integer{Value: int64(math.Tan(float64(arg.Value)))}
+			default:
+				return newError("argument to `pow` not supported, got %s",
+					arg.Type())
+			}
+
+		},
+	},
+	"rand": &object.Builtin{
+		Name: "rand",
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1",
+					len(args))
+			}
+			switch arg := args[0].(type) {
+			case *object.Integer:
+				val, err := crand.Int(crand.Reader, big.NewInt(0xFFFF))
+				if err != nil {
+					return &object.Integer{Value: int64(0)}
+				}
+				return &object.Integer{Value: val.Int64()}
+			default:
+				return newError("argument to `pow` not supported, got %s",
+					arg.Type())
+			}
+
+		},
+	},
+	"fib": &object.Builtin{
+		Name: "fib",
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1",
+					len(args))
+			}
+			switch arg := args[0].(type) {
+			case *object.Integer:
+				return &object.Integer{Value: fib(arg.Value)}
+			default:
+				return newError("argument to `pow` not supported, got %s",
+					arg.Type())
+			}
+
+		},
+	},
+	"isPrime": &object.Builtin{
+		Name: "isprime",
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1",
+					len(args))
+			}
+			switch arg := args[0].(type) {
+			case *object.Integer:
+				return &object.Boolean{Value: isPrime(arg.Value)}
 			default:
 				return newError("argument to `pow` not supported, got %s",
 					arg.Type())
@@ -90,13 +191,17 @@ var builtins = map[string]*object.Builtin{
 
 var utils = map[string]*object.Save{
 	"save": &object.Save{
-		Fn: func(name object.Object, id object.Object, env *object.Environment, rMap *object.ResultMap) object.Object {
-			if name.Type() == object.STRING_OBJ {
-				rMap.Set(name.Inspect(), id)
+		Fn: func(key object.Object, value object.Object, env *object.Environment, rChan chan object.Result) object.Object {
+			if key.Type() == object.STRING_OBJ {
+				var res = object.Result{
+					Key:   key.Inspect(),
+					Value: value,
+				}
+				rChan <- res
 				return NULL
 			} else {
 				return newError("arguments to `save` not supported, got %s",
-					name.Type())
+					key.Type())
 			}
 		},
 	},

@@ -309,21 +309,7 @@ func (p *Parser) parseForExpression() ast.Expression {
 		return nil
 	}
 	expression.Loop = p.parseBlockStatement()
-	/*p.nextToken()
-	fmt.Println(p.curToken)
-	expression.Variable = *p.parseLetStatement()
-	fmt.Println(expression.Variable)
-	expression.Condition = p.parseExpression(LOWEST)
-	expression.Update = p.parseExpression(LOWEST)
 
-	if !p.expectPeek(token.RPAREN) {
-		return nil
-	}
-	if !p.expectPeek(token.LBRACE) {
-		return nil
-	}
-	expression.Loop = p.parseBlockStatement()
-	return expression*/
 	return expression
 }
 

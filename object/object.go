@@ -41,10 +41,11 @@ type ReturnValue struct {
 type BuiltinFunction func(args ...Object) Object
 
 type Builtin struct {
-	Fn BuiltinFunction
+	Fn   BuiltinFunction
+	Name string
 }
 
-type SaveFn func(Object, Object, *Environment, *ResultMap) Object
+type SaveFn func(Object, Object, *Environment, chan Result) Object
 
 type Save struct {
 	Fn SaveFn
@@ -62,6 +63,11 @@ type Error struct {
 
 type String struct {
 	Value string
+}
+
+type Result struct {
+	Key   string
+	Value Object
 }
 
 func (s *String) Type() ObjectType { return STRING_OBJ }
