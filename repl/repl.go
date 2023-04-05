@@ -8,10 +8,12 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/SebastiaanWouters/verigo/evaluator_middle"
 	"github.com/SebastiaanWouters/verigo/parser"
 
 	"github.com/SebastiaanWouters/verigo/ast"
 	"github.com/SebastiaanWouters/verigo/evaluator"
+	"github.com/SebastiaanWouters/verigo/evaluator_simple"
 	"github.com/SebastiaanWouters/verigo/lexer"
 	"github.com/SebastiaanWouters/verigo/object"
 )
@@ -113,6 +115,36 @@ func Eval(input string, rChan chan object.Result, opChan chan int) {
 
 func EvalParsed(program *ast.Program, env *object.Environment, rChan chan object.Result, opChan chan int) {
 	evaluator.Eval(program, env, rChan, opChan)
+}
+
+func Eval_Simple(input string) {
+	env := object.NewEnvironment()
+
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+
+	evaluator_simple.Eval(program, env)
+
+}
+
+func EvalParsed_Simple(program *ast.Program, env *object.Environment) {
+	evaluator_simple.Eval(program, env)
+}
+
+func Eval_Middle(input string, opCount *int) {
+	env := object.NewEnvironment()
+
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+
+	evaluator_middle.Eval(program, env, opCount)
+
+}
+
+func EvalParsed_Middle(program *ast.Program, env *object.Environment, opCount *int) {
+	evaluator_middle.Eval(program, env, opCount)
 }
 
 func printParserErrors(out io.Writer, errors []string) {
